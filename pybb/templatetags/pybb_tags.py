@@ -107,6 +107,7 @@ def pybb_topic_moderated_by(topic, user):
 
     return user.is_superuser or (user in topic.forum.moderators.all())
 
+
 @register.filter
 def pybb_editable_by(post, user):
     """
@@ -128,6 +129,7 @@ def pybb_posted_by(post, user):
     Check if the post is writed by the user.
     """
     return post.user == user
+
 
 @register.filter
 def pybb_topic_unread(topics, user):
@@ -179,6 +181,7 @@ def pybb_forum_unread(forums, user):
                (forum_dict[mark.forum.id].updated <= mark.time_stamp):
                 forum_dict[mark.forum.id].unread = False
     return forum_list
+
 
 @register.filter
 def pybb_topic_inline_pagination(topic):

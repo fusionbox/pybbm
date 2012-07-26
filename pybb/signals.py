@@ -18,6 +18,7 @@ def post_saved(instance, **kwargs):
     profile.post_count = instance.user.posts.count()
     profile.save()
 
+
 def user_saved(instance, created, **kwargs):
     if not created:
         return
@@ -31,6 +32,7 @@ def user_saved(instance, created, **kwargs):
     if settings.AUTH_PROFILE_MODULE == 'pybb.Profile':
         from models import Profile
         Profile(user=instance).save()
+
 
 def setup_signals():
     from models import Post

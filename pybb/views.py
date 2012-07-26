@@ -42,6 +42,7 @@ def filter_hidden(request, queryset_or_model):
         return queryset
     return queryset.filter(hidden=False)
 
+
 class IndexView(generic.ListView):
 
     template_name = 'pybb/index.html'
@@ -58,7 +59,7 @@ class IndexView(generic.ListView):
     def get_queryset(self):
         return filter_hidden(self.request, Category)
 
-    
+
 class CategoryView(generic.DetailView):
 
     template_name = 'pybb/index.html'
@@ -93,11 +94,11 @@ class ForumView(generic.ListView):
         qs = self.forum.topics.order_by('-sticky', '-updated').select_related()
         if not (self.request.user.is_superuser or self.request.user in self.forum.moderators.all()):
             if self.request.user.is_authenticated():
-                qs = qs.filter(Q(user=self.request.user)|Q(on_moderation=False))
+                qs = qs.filter(Q(user=self.request.user) | Q(on_moderation=False))
             else:
                 qs = qs.filter(on_moderation=False)
         return qs
-    
+
 
 class TopicView(generic.ListView):
     paginate_by = defaults.PYBB_TOPIC_PAGE_SIZE
@@ -118,7 +119,7 @@ class TopicView(generic.ListView):
         qs = self.topic.posts.all().select_related('user')
         if not pybb_topic_moderated_by(self.topic, self.request.user):
             if self.request.user.is_authenticated():
-                qs = qs.filter(Q(user=self.request.user)|Q(on_moderation=False))
+                qs = qs.filter(Q(user=self.request.user) | Q(on_moderation=False))
             else:
                 qs = qs.filter(on_moderation=False)
         return qs
@@ -161,7 +162,7 @@ class TopicView(generic.ListView):
                 topic_mark.save()
 
             # Check, if there are any unread topics in forum
-            read = Topic.objects.filter(Q(forum=topic.forum) & (Q(topicreadtracker__user=request.user,topicreadtracker__time_stamp__gt=F('updated'))) | 
+            read = Topic.objects.filter(Q(forum=topic.forum) & (Q(topicreadtracker__user=request.user,topicreadtracker__time_stamp__gt=F('updated'))) |
                                                                 Q(forum__forumreadtracker__user=request.user,forum__forumreadtracker__time_stamp__gt=F('updated')))
             unread = Topic.objects.filter(forum=topic.forum).exclude(id__in=read)
             if unread.count() == 0:
@@ -244,7 +245,7 @@ class AddPostView(FormChoiceMixin, generic.CreateView):
             else:
                 return self.render_to_response(self.get_context_data(form=form, aformset=aformset))
         return super(AddPostView, self).form_valid(form)
-        
+
     @method_decorator(csrf_protect)
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated():
@@ -258,6 +259,7 @@ class AddPostView(FormChoiceMixin, generic.CreateView):
         if not self.user.has_perm('pybb.add_post'):
             raise PermissionDenied
         return super(AddPostView, self).dispatch(request, *args, **kwargs)
+
 
 class UserView(generic.DetailView):
     model = User
@@ -273,7 +275,7 @@ class UserView(generic.DetailView):
         ctx = super(UserView, self).get_context_data(**kwargs)
         ctx['topic_count'] = Topic.objects.filter(user=ctx['target_user']).count()
         return ctx
-        
+
 
 class PostView(generic.RedirectView):
     def get_redirect_url(self, **kwargs):
@@ -281,11 +283,12 @@ class PostView(generic.RedirectView):
         if defaults.PYBB_PREMODERATION and\
             post.on_moderation and\
             (not pybb_topic_moderated_by(post.topic, self.request.user)) and\
-            (not post.user==self.request.user):
+            (not post.user == self.request.user):
             raise PermissionDenied
         count = post.topic.posts.filter(created__lt=post.created).count() + 1
         page = math.ceil(count / float(defaults.PYBB_TOPIC_PAGE_SIZE))
         return '%s?page=%d#post-%d' % (reverse('pybb:topic', args=[post.topic.id]), page, post.id)
+
 
 class ModeratePost(generic.RedirectView):
     def get_redirect_url(self, **kwargs):
@@ -295,6 +298,7 @@ class ModeratePost(generic.RedirectView):
         post.on_moderation = False
         post.save()
         return post.get_absolute_url()
+
 
 class ProfileEditView(generic.UpdateView):
 
@@ -352,7 +356,6 @@ class EditPostView(FormChoiceMixin, generic.UpdateView):
         return super(EditPostView, self).form_valid(form)
 
 
-
 class DeletePostView(generic.DeleteView):
 
     template_name = 'pybb/delete_post.html'
@@ -363,7 +366,7 @@ class DeletePostView(generic.DeleteView):
         self.topic = post.topic
         self.forum = post.topic.forum
         if not pybb_topic_moderated_by(self.topic, self.request.user):
-           raise PermissionDenied
+            raise PermissionDenied
         return post
 
     def get_success_url(self):
@@ -407,10 +410,12 @@ class CloseTopicView(TopicActionBaseView):
         topic.closed = True
         topic.save()
 
+
 class OpenTopicView(TopicActionBaseView):
     def action(self, topic):
         topic.closed = False
         topic.save()
+
 
 @login_required
 def delete_subscription(request, topic_id):
@@ -418,17 +423,20 @@ def delete_subscription(request, topic_id):
     topic.subscribers.remove(request.user)
     return HttpResponseRedirect(topic.get_absolute_url())
 
+
 @login_required
 def add_subscription(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.add(request.user)
     return HttpResponseRedirect(topic.get_absolute_url())
 
+
 @login_required
 def post_ajax_preview(request):
     content = request.POST.get('data')
     html = defaults.PYBB_MARKUP_ENGINES[defaults.PYBB_MARKUP](content)
     return HttpResponse(html)
+
 
 @login_required
 def mark_all_as_read(request):
@@ -439,6 +447,7 @@ def mark_all_as_read(request):
     msg = _('All forums marked as read')
     messages.success(request, msg, fail_silently=True)
     return redirect(reverse('pybb:index'))
+
 
 @login_required
 @permission_required('pybb.block_users')

@@ -46,6 +46,7 @@ TZ_CHOICES = [(float(x[0]), x[1]) for x in (
 (11.5, '+11.5'), (12, '+12'), (13, '+13'), (14, '+14'),
 )]
 
+
 #noinspection PyUnusedLocal
 def get_file_path(instance, filename, to='pybb/avatar'):
     """
@@ -58,11 +59,12 @@ def get_file_path(instance, filename, to='pybb/avatar'):
     filename = "%s.%s" % (uuid.uuid4(), ext)
     return os.path.join(to, filename)
 
+
 class Category(models.Model):
     name = models.CharField(_('Name'), max_length=80)
     position = models.IntegerField(_('Position'), blank=True, default=0)
     hidden = models.BooleanField(_('Hidden'), blank=False, null=False, default=False,
-        help_text = _('If checked, this category will be visible only for staff')
+        help_text=_('If checked, this category will be visible only for staff')
     )
 
     class Meta(object):
@@ -225,6 +227,7 @@ class RenderableItem(models.Model):
         # Unescape entities which was generated with the markup processor
         self.body_text = unescape(text)
 
+
 class Post(RenderableItem):
     topic = models.ForeignKey(Topic, related_name='posts', verbose_name=_('Topic'))
     user = models.ForeignKey(User, related_name='posts', verbose_name=_('User'))
@@ -284,6 +287,7 @@ class Post(RenderableItem):
         Used in templates for breadcrumb building
         """
         return self.topic.forum.category, self.topic.forum, self.topic,
+
 
 class PybbProfile(models.Model):
     """
@@ -377,6 +381,7 @@ class TopicReadTracker(models.Model):
     user = models.ForeignKey(User, blank=False, null=False)
     topic = models.ForeignKey(Topic, blank=True, null=True)
     time_stamp = models.DateTimeField(auto_now=True)
+
 
 class ForumReadTracker(models.Model):
     """

@@ -14,6 +14,17 @@ from annoying.fields import AutoOneToOneField
 from sorl.thumbnail import ImageField
 from pybb.util import unescape
 
+# extensible imports
+CategoryBase = models.Model
+ForumBase = models.Model
+try:
+    if settings.PYBB_MODULE:
+        pybb_module = __import__(settings.PYBB_MODULE, globals(), locals(), ['CategoryBase, ForumBase'])
+        CategoryBase = pybb_module.CategoryBase
+        ForumBase = pybb_module.ForumBase
+except AttributeError:
+    pass
+
 try:
     from hashlib import sha1
 except ImportError:
@@ -60,7 +71,7 @@ def get_file_path(instance, filename, to='pybb/avatar'):
     return os.path.join(to, filename)
 
 
-class Category(models.Model):
+class Category(CategoryBase):
     name = models.CharField(_('Name'), max_length=80)
     position = models.IntegerField(_('Position'), blank=True, default=0)
     hidden = models.BooleanField(_('Hidden'), blank=False, null=False, default=False,
@@ -90,7 +101,7 @@ class Category(models.Model):
         return Post.objects.filter(topic__forum__category=self).select_related()
 
 
-class Forum(models.Model):
+class Forum(ForumBase):
     category = models.ForeignKey(Category, related_name='forums', verbose_name=_('Category'))
     name = models.CharField(_('Name'), max_length=80)
     position = models.IntegerField(_('Position'), blank=True, default=0)

@@ -13,6 +13,7 @@ from django.conf import settings
 from annoying.fields import AutoOneToOneField
 from sorl.thumbnail import ImageField
 from pybb.util import unescape
+from gym.models import Gym
 
 # extensible imports
 CategoryBase = models.Model
@@ -71,7 +72,8 @@ def get_file_path(instance, filename, to='pybb/avatar'):
     return os.path.join(to, filename)
 
 
-class Category(CategoryBase):
+class Category(models.Model):
+    gym = models.ForeignKey(Gym, related_name='pybb_categories', null=True, blank=True)
     name = models.CharField(_('Name'), max_length=80)
     position = models.IntegerField(_('Position'), blank=True, default=0)
     hidden = models.BooleanField(_('Hidden'), blank=False, null=False, default=False,
@@ -101,7 +103,8 @@ class Category(CategoryBase):
         return Post.objects.filter(topic__forum__category=self).select_related()
 
 
-class Forum(ForumBase):
+class Forum(models.Model):
+    gym = models.ForeignKey(Gym, related_name='pybb_forums', null=True, blank=True)
     category = models.ForeignKey(Category, related_name='forums', verbose_name=_('Category'))
     name = models.CharField(_('Name'), max_length=80)
     position = models.IntegerField(_('Position'), blank=True, default=0)

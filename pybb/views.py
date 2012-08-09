@@ -32,28 +32,17 @@ from pybb.templatetags.pybb_tags import pybb_editable_by
 from pybb.templatetags.pybb_tags import pybb_topic_moderated_by
 from pybb import defaults
 
-# extensible imports
-from django.conf import settings
-filter_hidden = None
-try:
-    if settings.PYBB_MODULE:
-        try:
-            pybb_module = __import__(settings.PYBB_MODULE, globals(), locals(), ['filter_hidden'])
-            filter_hidden = pybb_module.filter_hidden
-        except ImportError:
-            pass
-except AttributeError:
-    pass
 
-if not filter_hidden:
-    def filter_hidden(request, queryset_or_model):
-        """
-        Return queryset for model, manager or queryset, filtering hidden objects for non staff users.
-        """
-        queryset = _get_queryset(queryset_or_model)
-        if request.user.is_staff:
-            return queryset
-        return queryset.filter(hidden=False)
+def filter_hidden(request, queryset_or_model):
+    """
+    Return queryset for model, manager or queryset, filtering hidden objects for non staff users.
+    """
+    queryset = _get_queryset(queryset_or_model)
+    if request.user.is_staff:
+        return queryset
+    elif request.gyms:
+        return queryset.filter(Q(gym__in=request.gyms) | Q(gym=None), hidden=False)
+    return queryset.filter(Q(gym=None), hidden=False)
 
 
 class IndexView(generic.ListView):

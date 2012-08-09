@@ -40,7 +40,7 @@ def filter_hidden(request, queryset_or_model):
     queryset = _get_queryset(queryset_or_model)
     if request.user.is_staff:
         return queryset
-    elif request.gyms:
+    elif 'gyms' in request and request.gyms:
         return queryset.filter(Q(gym__in=request.gyms) | Q(gym=None), hidden=False)
     return queryset.filter(Q(gym=None), hidden=False)
 
